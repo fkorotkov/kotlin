@@ -17,43 +17,56 @@ import org.jetbrains.kotlin.resolve.checkers.*
 import org.jetbrains.kotlin.resolve.lazy.DelegationFilter
 import org.jetbrains.kotlin.resolve.scopes.SyntheticScopes
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
+import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.DynamicTypesSettings
 import java.util.*
 
 abstract class TargetPlatform(val platformName: String) {
+    private data class DefaultImportsKey(val includeKotlinComparisons: Boolean, val includeLowPriorityImports: Boolean)
+
+    private val defaultImports = LockBasedStorageManager().let { storageManager ->
+        storageManager.createMemoizedFunction<DefaultImportsKey, List<ImportPath>> { (includeKotlinComparisons, includeLowPriorityImports) ->
+            ArrayList<ImportPath>().apply {
+                listOf(
+                    "kotlin.*",
+                    "kotlin.annotation.*",
+                    "kotlin.collections.*",
+                    "kotlin.ranges.*",
+                    "kotlin.sequences.*",
+                    "kotlin.text.*",
+                    "kotlin.io.*"
+                ).forEach { add(ImportPath.fromString(it)) }
+
+                if (includeKotlinComparisons) {
+                    add(ImportPath.fromString("kotlin.comparisons.*"))
+                }
+
+                computePlatformSpecificDefaultImports(storageManager, this)
+
+                if (includeLowPriorityImports) {
+                    addAll(defaultLowPriorityImports)
+                }
+            }
+        }
+    }
+
     override fun toString() = platformName
 
     abstract val platformConfigurator: PlatformConfigurator
 
     open val defaultLowPriorityImports: List<ImportPath> get() = emptyList()
 
-    abstract fun getDefaultImports(includeKotlinComparisons: Boolean): List<ImportPath>
+    fun getDefaultImports(includeKotlinComparisons: Boolean, includeLowPriorityImports: Boolean): List<ImportPath> =
+        defaultImports(DefaultImportsKey(includeKotlinComparisons, includeLowPriorityImports))
+
+    protected abstract fun computePlatformSpecificDefaultImports(storageManager: StorageManager, result: MutableList<ImportPath>)
 
     open val excludedImports: List<FqName> get() = emptyList()
 
     abstract val multiTargetPlatform: MultiTargetPlatform
 
     object Common : TargetPlatform("Default") {
-        private val defaultImports =
-            LockBasedStorageManager().createMemoizedFunction<Boolean, List<ImportPath>> { includeKotlinComparisons ->
-                ArrayList<ImportPath>().apply {
-                    listOf(
-                        "kotlin.*",
-                        "kotlin.annotation.*",
-                        "kotlin.collections.*",
-                        "kotlin.ranges.*",
-                        "kotlin.sequences.*",
-                        "kotlin.text.*",
-                        "kotlin.io.*"
-                    ).forEach { add(ImportPath.fromString(it)) }
-
-                    if (includeKotlinComparisons) {
-                        add(ImportPath.fromString("kotlin.comparisons.*"))
-                    }
-                }
-            }
-
-        override fun getDefaultImports(includeKotlinComparisons: Boolean): List<ImportPath> = defaultImports(includeKotlinComparisons)
+        override fun computePlatformSpecificDefaultImports(storageManager: StorageManager, result: MutableList<ImportPath>) {}
 
         override val platformConfigurator =
             object : PlatformConfigurator(
