@@ -208,7 +208,7 @@ class LazyImportResolver(
 class LazyImportScope(
     override val parent: ImportingScope?,
     private val importResolver: LazyImportResolver,
-    private val secondaryClassImportResolver: LazyImportResolver?,
+    private val secondaryImportResolver: LazyImportResolver?,
     private val filteringKind: LazyImportScope.FilteringKind,
     private val debugName: String
 ) : ImportingScope {
@@ -231,7 +231,7 @@ class LazyImportScope(
     }
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
-        return importResolver.getClassifier(name, location) ?: secondaryClassImportResolver?.getClassifier(name, location)
+        return importResolver.getClassifier(name, location) ?: secondaryImportResolver?.getClassifier(name, location)
     }
 
     private fun LazyImportResolver.getClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
@@ -249,14 +249,14 @@ class LazyImportScope(
     override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
         if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
         return importResolver.collectFromImports(name) { scope, _ -> scope.getContributedVariables(name, location) }.ifEmpty {
-            secondaryClassImportResolver?.collectFromImports(name) { scope, _ -> scope.getContributedVariables(name, location) }.orEmpty()
+            secondaryImportResolver?.collectFromImports(name) { scope, _ -> scope.getContributedVariables(name, location) }.orEmpty()
         }
     }
 
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> {
         if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
         return importResolver.collectFromImports(name) { scope, _ -> scope.getContributedFunctions(name, location) }.ifEmpty {
-            secondaryClassImportResolver?.collectFromImports(name) { scope, _ -> scope.getContributedFunctions(name, location) }.orEmpty()
+            secondaryImportResolver?.collectFromImports(name) { scope, _ -> scope.getContributedFunctions(name, location) }.orEmpty()
         }
     }
 
@@ -269,13 +269,13 @@ class LazyImportScope(
         if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
 
         val storageManager = importResolver.storageManager
-        if (secondaryClassImportResolver != null) {
-            assert(storageManager === secondaryClassImportResolver.storageManager) { "Multiple storage managers are not supported" }
+        if (secondaryImportResolver != null) {
+            assert(storageManager === secondaryImportResolver.storageManager) { "Multiple storage managers are not supported" }
         }
 
         return storageManager.compute {
             val result = linkedSetOf<DeclarationDescriptor>()
-            val importedNames = if (secondaryClassImportResolver == null) null else hashSetOf<Name>()
+            val importedNames = if (secondaryImportResolver == null) null else hashSetOf<Name>()
 
             for (directive in importResolver.indexedImports.imports) {
                 val importPath = directive.importPath ?: continue
@@ -293,7 +293,7 @@ class LazyImportScope(
                 }
             }
 
-            secondaryClassImportResolver?.let { resolver ->
+            secondaryImportResolver?.let { resolver ->
                 for (directive in resolver.indexedImports.imports) {
                     val newDescriptors =
                         resolver.getImportScope(directive).getContributedDescriptors(kindFilter, nameFilter, changeNamesForAliased)
@@ -321,11 +321,12 @@ class LazyImportScope(
     }
 
     override fun definitelyDoesNotContainName(name: Name): Boolean =
-        importResolver.definitelyDoesNotContainName(name) && secondaryClassImportResolver?.definitelyDoesNotContainName(name) != false
+        importResolver.definitelyDoesNotContainName(name) && secondaryImportResolver?.definitelyDoesNotContainName(name) != false
 
     override fun recordLookup(name: Name, location: LookupLocation) {
         importResolver.recordLookup(name, location)
+        secondaryImportResolver?.recordLookup(name, location)
     }
 
-    override fun computeImportedNames(): Set<Name>? = importResolver.allNames?.union(secondaryClassImportResolver?.allNames.orEmpty())
+    override fun computeImportedNames(): Set<Name>? = importResolver.allNames?.union(secondaryImportResolver?.allNames.orEmpty())
 }
