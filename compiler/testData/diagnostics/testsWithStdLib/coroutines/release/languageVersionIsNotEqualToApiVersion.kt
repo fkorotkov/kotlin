@@ -3,24 +3,24 @@
 // !LANGUAGE: +ReleaseCoroutines
 // SKIP_TXT
 
-<!UNSUPPORTED_FEATURE!>suspend<!> fun dummy() {}
+<!UNSUPPORTED!>suspend<!> fun dummy() {}
 
 // TODO: Forbid
-fun builder(c: <!UNSUPPORTED_FEATURE!>suspend<!> () -> Unit) {}
+fun builder(c: <!UNSUPPORTED!>suspend<!> () -> Unit) {}
 
-<!UNSUPPORTED_FEATURE!>suspend<!> fun test1() {
+<!UNSUPPORTED!>suspend<!> fun test1() {
     kotlin.coroutines.<!UNRESOLVED_REFERENCE!>coroutineContext<!>
 
     kotlin.coroutines.experimental.<!UNSUPPORTED!>coroutineContext<!>
 
-    <!UNSUPPORTED_FEATURE!>suspend<!> {}()
+    <!UNSUPPORTED!>suspend<!> {}()
 
     dummy()
 
-    val c: <!UNSUPPORTED_FEATURE!>suspend<!> () -> Unit = {}
+    val c: <!UNSUPPORTED!>suspend<!> () -> Unit = {}
     c()
 
-    <!UNSUPPORTED_FEATURE!>builder<!> {}
+    <!UNSUPPORTED!>builder<!> {}
 }
 
 fun test2() {
@@ -32,6 +32,6 @@ fun test2() {
     }
 }
 
-<!UNSUPPORTED_FEATURE!>suspend<!> fun test3(): Unit = <!TYPE_MISMATCH!>kotlin.coroutines.experimental.<!NO_VALUE_FOR_PARAMETER, TYPE_INFERENCE_PARAMETER_CONSTRAINT_ERROR!>suspendCoroutine<!> <!TYPE_MISMATCH!>{ <!CANNOT_INFER_PARAMETER_TYPE!>_<!> -> Unit }<!><!>
+<!UNSUPPORTED!>suspend<!> fun test3(): Unit = <!TYPE_MISMATCH!>kotlin.coroutines.experimental.<!NO_VALUE_FOR_PARAMETER, TYPE_INFERENCE_PARAMETER_CONSTRAINT_ERROR!>suspendCoroutine<!> <!TYPE_MISMATCH!>{ <!CANNOT_INFER_PARAMETER_TYPE!>_<!> -> Unit }<!><!>
 
-<!UNSUPPORTED_FEATURE!>suspend<!> fun test4(): Unit = kotlin.coroutines.<!UNRESOLVED_REFERENCE!>suspendCoroutine<!> { <!CANNOT_INFER_PARAMETER_TYPE!>_<!> -> Unit }
+<!UNSUPPORTED!>suspend<!> fun test4(): Unit = kotlin.coroutines.<!UNRESOLVED_REFERENCE!>suspendCoroutine<!> { <!CANNOT_INFER_PARAMETER_TYPE!>_<!> -> Unit }
