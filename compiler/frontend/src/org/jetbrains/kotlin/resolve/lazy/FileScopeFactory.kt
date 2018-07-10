@@ -17,7 +17,6 @@
 package org.jetbrains.kotlin.resolve.lazy
 
 import org.jetbrains.kotlin.builtins.PlatformToKotlinClassMap
-import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
@@ -52,10 +51,7 @@ class FileScopeFactory(
     /* avoid constructing psi for default imports prematurely (time consuming in some scenarios) */
     private val defaultImports by storageManager.createLazyValue {
         ktImportsFactory.createImportDirectivesNotCached(
-            targetPlatform.getDefaultImports(
-                languageVersionSettings.supportsFeature(LanguageFeature.DefaultImportOfPackageKotlinComparisons),
-                includeLowPriorityImports = false
-            )
+            targetPlatform.getDefaultImports(languageVersionSettings, includeLowPriorityImports = false)
         )
     }
 

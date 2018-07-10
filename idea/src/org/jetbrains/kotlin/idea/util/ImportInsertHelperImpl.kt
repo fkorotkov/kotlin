@@ -18,7 +18,6 @@ package org.jetbrains.kotlin.util
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
@@ -62,10 +61,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
     override fun isImportedWithDefault(importPath: ImportPath, contextFile: KtFile): Boolean {
         val languageVersionSettings = contextFile.getResolutionFacade().frontendService<LanguageVersionSettings>()
         val platform = TargetPlatformDetector.getPlatform(contextFile)
-        val allDefaultImports = platform.getDefaultImports(
-            languageVersionSettings.supportsFeature(LanguageFeature.DefaultImportOfPackageKotlinComparisons),
-            includeLowPriorityImports = true
-        )
+        val allDefaultImports = platform.getDefaultImports(languageVersionSettings, includeLowPriorityImports = true)
         return importPath.isImported(allDefaultImports, platform.excludedImports)
     }
 

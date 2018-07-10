@@ -6,6 +6,8 @@
 package org.jetbrains.kotlin.resolve
 
 import org.jetbrains.kotlin.builtins.PlatformToKotlinClassMap
+import org.jetbrains.kotlin.config.LanguageFeature
+import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.container.StorageComponentContainer
 import org.jetbrains.kotlin.container.composeContainer
 import org.jetbrains.kotlin.container.useInstance
@@ -56,8 +58,13 @@ abstract class TargetPlatform(val platformName: String) {
 
     open val defaultLowPriorityImports: List<ImportPath> get() = emptyList()
 
-    fun getDefaultImports(includeKotlinComparisons: Boolean, includeLowPriorityImports: Boolean): List<ImportPath> =
-        defaultImports(DefaultImportsKey(includeKotlinComparisons, includeLowPriorityImports))
+    fun getDefaultImports(languageVersionSettings: LanguageVersionSettings, includeLowPriorityImports: Boolean): List<ImportPath> =
+        defaultImports(
+            DefaultImportsKey(
+                languageVersionSettings.supportsFeature(LanguageFeature.DefaultImportOfPackageKotlinComparisons),
+                includeLowPriorityImports
+            )
+        )
 
     protected abstract fun computePlatformSpecificDefaultImports(storageManager: StorageManager, result: MutableList<ImportPath>)
 
