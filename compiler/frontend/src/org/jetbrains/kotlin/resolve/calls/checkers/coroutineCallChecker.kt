@@ -131,9 +131,11 @@ object BuilderFunctionsCallChecker : CallChecker {
 }
 
 fun checkCoroutinesFeature(languageVersionSettings: LanguageVersionSettings, diagnosticHolder: DiagnosticSink, reportOn: PsiElement) {
-    if (languageVersionSettings.supportsFeature(LanguageFeature.ReleaseCoroutines)) {
-        if (languageVersionSettings.apiVersion < ApiVersion.KOTLIN_1_3) {
-            diagnosticHolder.report(Errors.UNSUPPORTED.on(reportOn, "cannot use release coroutines with api version 1.3"))
+    if (languageVersionSettings.supportsFeature(LanguageFeature.Coroutines) &&
+        (languageVersionSettings.supportsFeature(LanguageFeature.ReleaseCoroutines) || languageVersionSettings.languageVersion >= LanguageFeature.ReleaseCoroutines.sinceVersion!!)
+    ) {
+        if (languageVersionSettings.apiVersion < LanguageFeature.ReleaseCoroutines.sinceApiVersion) {
+            diagnosticHolder.report(Errors.UNSUPPORTED_FEATURE.on(reportOn, LanguageFeature.ReleaseCoroutines to languageVersionSettings))
         }
         return
     }

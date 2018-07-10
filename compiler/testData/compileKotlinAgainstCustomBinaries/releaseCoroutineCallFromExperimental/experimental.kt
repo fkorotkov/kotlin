@@ -3,7 +3,9 @@ suspend fun callRelease() {
 
     C().dummy()
 
-    C.Nested().dummy()
+    // TODO: This should be error
+    WithNested.Nested().dummy()
 
-    C().Inner().dummy()
+    // TODO: This should be error
+    WithInner().Inner().dummy()
 }

@@ -69,7 +69,7 @@ enum class LanguageFeature(
     JvmStaticInInterface(KOTLIN_1_3, kind = UNSTABLE_FEATURE),
     ProhibitVisibilityOfNestedClassifiersFromSupertypesOfCompanion(KOTLIN_1_3, kind = BUG_FIX),
     ProhibitNonConstValuesAsVarargsInAnnotations(KOTLIN_1_3, kind = BUG_FIX),
-    ReleaseCoroutines(KOTLIN_1_3, kind = UNSTABLE_FEATURE),
+    ReleaseCoroutines(KOTLIN_1_3, ApiVersion.KOTLIN_1_3, kind = UNSTABLE_FEATURE),
     ReadDeserializedContracts(KOTLIN_1_3),
     UseReturnsEffect(KOTLIN_1_3),
     UseCallsInPlaceEffect(KOTLIN_1_3),

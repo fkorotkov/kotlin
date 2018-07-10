@@ -28,15 +28,14 @@ import org.jetbrains.kotlin.test.TestJdkKind
 import java.io.File
 
 class VersionRequirementTest : TestCaseWithTmpdir() {
-    private var customLanguageVersion: LanguageVersion? = null
-
     fun doTest(
-            expectedVersionRequirement: VersionRequirement.Version,
-            expectedLevel: DeprecationLevel,
-            expectedMessage: String?,
-            expectedVersionKind: ProtoBuf.VersionRequirement.VersionKind,
-            expectedErrorCode: Int?,
-            vararg fqNames: String
+        expectedVersionRequirement: VersionRequirement.Version,
+        expectedLevel: DeprecationLevel,
+        expectedMessage: String?,
+        expectedVersionKind: ProtoBuf.VersionRequirement.VersionKind,
+        expectedErrorCode: Int?,
+        customLanguageVersion: LanguageVersion = LanguageVersionSettingsImpl.DEFAULT.languageVersion,
+        fqNames: List<String>
     ) {
         LoadDescriptorUtil.compileKotlinToDirAndGetModule(
             listOf(File("compiler/testData/versionRequirement/${getTestName(true)}.kt")), tmpdir,
@@ -45,9 +44,8 @@ class VersionRequirementTest : TestCaseWithTmpdir() {
                 KotlinTestUtils.newConfiguration(ConfigurationKind.ALL, TestJdkKind.MOCK_JDK, tmpdir).apply {
                     put(JVMConfigurationKeys.JVM_TARGET, JvmTarget.JVM_1_8)
                     languageVersionSettings = LanguageVersionSettingsImpl(
-                        customLanguageVersion ?: LanguageVersionSettingsImpl.DEFAULT.languageVersion,
-                        if (customLanguageVersion == null) LanguageVersionSettingsImpl.DEFAULT.apiVersion
-                        else ApiVersion.createByLanguageVersion(customLanguageVersion!!),
+                        customLanguageVersion,
+                        ApiVersion.createByLanguageVersion(customLanguageVersion),
                         mapOf(AnalysisFlag.jvmDefaultMode to JvmDefaultMode.ENABLE),
                         emptyMap()
                     )
@@ -105,72 +103,89 @@ class VersionRequirementTest : TestCaseWithTmpdir() {
     }
 
     fun testSuspendFun() {
-        doTest(VersionRequirement.Version(1, 1), DeprecationLevel.ERROR, null, LANGUAGE_VERSION, null,
-               "test.topLevel",
-               "test.Foo.member",
-               "test.Foo.<init>",
-               "test.async1",
-               "test.async2",
-               "test.async3",
-               "test.async4",
-               "test.asyncVal"
-       )
-        customLanguageVersion = LanguageVersion.KOTLIN_1_3
+        doTest(
+            VersionRequirement.Version(1, 1), DeprecationLevel.ERROR, null, LANGUAGE_VERSION, null,
+            fqNames = listOf(
+                "test.topLevel",
+                "test.Foo.member",
+                "test.Foo.<init>",
+                "test.async1",
+                "test.async2",
+                "test.async3",
+                "test.async4",
+                "test.asyncVal"
+            )
+        )
 
         doTest(
             VersionRequirement.Version(1, 3), DeprecationLevel.ERROR, null, LANGUAGE_VERSION, null,
-            "test.topLevel",
-            "test.Foo.member",
-            "test.Foo.<init>",
-            "test.async1",
-            "test.async2",
-            "test.async3",
-            "test.async4",
-            "test.asyncVal"
+            customLanguageVersion = LanguageVersion.KOTLIN_1_3,
+            fqNames = listOf(
+                "test.topLevel",
+                "test.Foo.member",
+                "test.Foo.<init>",
+                "test.async1",
+                "test.async2",
+                "test.async3",
+                "test.async4",
+                "test.asyncVal"
+            )
         )
     }
 
     fun testLanguageVersionViaAnnotation() {
-        doTest(VersionRequirement.Version(1, 1), DeprecationLevel.WARNING, "message", LANGUAGE_VERSION, 42,
-               "test.Klass",
-               "test.Konstructor.<init>",
-               "test.Typealias",
-               "test.function",
-               "test.property"
-       )
+        doTest(
+            VersionRequirement.Version(1, 1), DeprecationLevel.WARNING, "message", LANGUAGE_VERSION, 42,
+            fqNames = listOf(
+                "test.Klass",
+                "test.Konstructor.<init>",
+                "test.Typealias",
+                "test.function",
+                "test.property"
+            )
+        )
     }
 
     fun testApiVersionViaAnnotation() {
-        doTest(VersionRequirement.Version(1, 1), DeprecationLevel.WARNING, "message", API_VERSION, 42,
-               "test.Klass",
-               "test.Konstructor.<init>",
-               "test.Typealias",
-               "test.function",
-               "test.property"
-       )
+        doTest(
+            VersionRequirement.Version(1, 1), DeprecationLevel.WARNING, "message", API_VERSION, 42,
+            fqNames = listOf(
+                "test.Klass",
+                "test.Konstructor.<init>",
+                "test.Typealias",
+                "test.function",
+                "test.property"
+            )
+        )
     }
 
     fun testCompilerVersionViaAnnotation() {
-        doTest(VersionRequirement.Version(1, 1), DeprecationLevel.WARNING, "message", COMPILER_VERSION, 42,
-               "test.Klass",
-               "test.Konstructor.<init>",
-               "test.Typealias",
-               "test.function",
-               "test.property"
-       )
+        doTest(
+            VersionRequirement.Version(1, 1), DeprecationLevel.WARNING, "message", COMPILER_VERSION, 42,
+            fqNames = listOf(
+                "test.Klass",
+                "test.Konstructor.<init>",
+                "test.Typealias",
+                "test.function",
+                "test.property"
+            )
+        )
     }
 
     fun testPatchVersion() {
-        doTest(VersionRequirement.Version(1, 1, 50), DeprecationLevel.HIDDEN, null, LANGUAGE_VERSION, null,
-               "test.Klass"
+        doTest(
+            VersionRequirement.Version(1, 1, 50), DeprecationLevel.HIDDEN, null, LANGUAGE_VERSION, null,
+            fqNames = listOf("test.Klass")
         )
     }
 
     fun testJvmDefault() {
         doTest(
             VersionRequirement.Version(1, 2, 40), DeprecationLevel.ERROR, null, COMPILER_VERSION, null,
-            "test.Base",
-            "test.Derived"
+            fqNames = listOf(
+                "test.Base",
+                "test.Derived"
+            )
         )
     }
 }
