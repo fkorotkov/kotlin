@@ -7,6 +7,18 @@ suspend fun String.dummy() = this + "K"
 
 suspend fun String.dummy(s: String) = this + s
 
+class C {
+    suspend fun dummy() = "OK"
+
+    class Nested {
+        suspend fun dummy() = "OK"
+    }
+
+    inner class Inner {
+        suspend fun dummy() = "OK"
+    }
+}
+
 // FILE: B.kt
 // LANGUAGE_VERSION: 1.3
 import kotlin.coroutines.experimental.*
@@ -23,5 +35,8 @@ fun box(): String {
     if (dummy(continuation) != "OK") return "FAIL 1"
     if ("O".dummy(continuation) != "OK") return "FAIL 2"
     if ("O".dummy("K", continuation) != "OK") return "FAIL 3"
+    if (C().dummy(continuation) != "OK") return "FAIL 4"
+    if (C.Nested().dummy(continuation) != "OK") return "FAIL 5"
+    if (C().Inner().dummy(continuation) != "OK") return "FAIL 6"
     return "OK"
 }

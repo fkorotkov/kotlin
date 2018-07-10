@@ -1,17 +1,6 @@
 /*
- * Copyright 2010-2017 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright 2010-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
+ * that can be found in the license/LICENSE.txt file.
  */
 
 package org.jetbrains.kotlin.serialization
@@ -39,6 +28,8 @@ import org.jetbrains.kotlin.test.TestJdkKind
 import java.io.File
 
 class VersionRequirementTest : TestCaseWithTmpdir() {
+    private var customLanguageVersion: LanguageVersion? = null
+
     fun doTest(
             expectedVersionRequirement: VersionRequirement.Version,
             expectedLevel: DeprecationLevel,
@@ -54,8 +45,9 @@ class VersionRequirementTest : TestCaseWithTmpdir() {
                 KotlinTestUtils.newConfiguration(ConfigurationKind.ALL, TestJdkKind.MOCK_JDK, tmpdir).apply {
                     put(JVMConfigurationKeys.JVM_TARGET, JvmTarget.JVM_1_8)
                     languageVersionSettings = LanguageVersionSettingsImpl(
-                        LanguageVersionSettingsImpl.DEFAULT.languageVersion,
-                        LanguageVersionSettingsImpl.DEFAULT.apiVersion,
+                        customLanguageVersion ?: LanguageVersionSettingsImpl.DEFAULT.languageVersion,
+                        if (customLanguageVersion == null) LanguageVersionSettingsImpl.DEFAULT.apiVersion
+                        else ApiVersion.createByLanguageVersion(customLanguageVersion!!),
                         mapOf(AnalysisFlag.jvmDefaultMode to JvmDefaultMode.ENABLE),
                         emptyMap()
                     )
@@ -123,6 +115,19 @@ class VersionRequirementTest : TestCaseWithTmpdir() {
                "test.async4",
                "test.asyncVal"
        )
+        customLanguageVersion = LanguageVersion.KOTLIN_1_3
+
+        doTest(
+            VersionRequirement.Version(1, 3), DeprecationLevel.ERROR, null, LANGUAGE_VERSION, null,
+            "test.topLevel",
+            "test.Foo.member",
+            "test.Foo.<init>",
+            "test.async1",
+            "test.async2",
+            "test.async3",
+            "test.async4",
+            "test.asyncVal"
+        )
     }
 
     fun testLanguageVersionViaAnnotation() {
