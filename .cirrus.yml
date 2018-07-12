@@ -1,0 +1,11 @@
+container:
+  image: gradle:latest
+  cpu: 8
+  memory: 24G
+
+test_task:
+  install_script: ./gradlew install
+  core_libs_test_script: ./gradlew coreLibsTest
+  gradle_plugin_test_script: ./gradlew gradlePluginTest
+  compiler_test_script: ./gradlew compilerTest
+  idea_plugin_test_script: ./gradlew ideaPluginTest
