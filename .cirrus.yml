@@ -3,6 +3,9 @@ container:
   cpu: 8
   memory: 24G
 
+env:
+  CIRRUS_CLONE_DEPTH: 1
+
 test_task:
   install_script: ./gradlew install
   core_libs_test_script: ./gradlew coreLibsTest
